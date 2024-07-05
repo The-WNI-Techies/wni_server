@@ -1,11 +1,24 @@
 import express, { Request, Response } from "express";
 import mongoose from "mongoose";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
-import authRoutes from "./routes/auth";
-import { requireAuth } from "./middlewares/authMiddleware";
+import auth from "./auth/auth.route";
 
 const app = express();
+const PATH = '/api/v1';
+const corsOptions: CorsOptions = {}
+
+app.use(cors(corsOptions));
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+app.get("/healthz", (_req: Request, res: Response) => {
+	res.send("Ready for some server-side shit!");
+});
+app.use(`${PATH}/auth`, auth);
+
 
 mongoose.connect(process.env.MONGO_URI!)
 	.then(() => {
@@ -14,17 +27,3 @@ mongoose.connect(process.env.MONGO_URI!)
 		});
 	})
 	.catch(err => console.error(err));
-
-// const corsOptions = {}
-app.use(cors());
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-
-app.use("/auth", authRoutes);
-app.get("/", requireAuth, (_req: Request, res: Response) => {
-	res.send("Ready for some server-side shit!");
-});
-
-
