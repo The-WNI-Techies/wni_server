@@ -1,19 +1,27 @@
 import { model, Schema } from "mongoose";
+import User from "../user/user.model";
+
+function AnHourFromCurrentTime() {
+    const now = new Date();
+    now.setHours(now.getHours() + 1)
+    const then = now;
+    return then;
+}
 
 const ResetPasswordTokenSchema = new Schema({
     user : {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: User,
         unique: true,
         required: true
     },
     token: {
-        type: Schema.Types.UUID,
+        type: String,
         required: true
     },
     expires: {
         type: Schema.Types.Date,
-        // default: new Date() 
+        default: AnHourFromCurrentTime(),
     }
 });
 
