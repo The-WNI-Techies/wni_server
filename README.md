@@ -3,14 +3,8 @@ Backend system for WNI's web platform
 
 ## GOALS
 
-- Implement Schema Validation (prefarably using Joi; look into it)
-- Better error handling.
+- Implement auth middlewares `canResetPassword`, `requireAuth`, `requireVerification`
 
-## TO BE COMPLETED
-
-- Finish sign-up functionality by sending out emails
-- Add expires field to verification token model
-- Try implementing catch-all error handler
 
 ## DATABASE && DB Schema
 
@@ -18,3 +12,7 @@ Backend system for WNI's web platform
 - Mongoose used alongside mongosh locally or mongodb atlas in production through env variables.
 - User schema and permissions (up next)
 - Sign up and sign in implemented
+- Reset Password and VerifyUser implemented
+
+## HOW TO USE
+- Response: `error` field for error && success field for `successful` api calls
