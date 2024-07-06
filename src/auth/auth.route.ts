@@ -8,7 +8,7 @@ auth.post('/register', AuthController.signUp);
 auth.post('/:userID/verification-token', AuthController.sendVerificationToken);
 auth.post('/:userID/verify', AuthController.verifyUser);
 auth.post('/:userID/get-password-reset-token', AuthController.generatePasswordResetToken);
-auth.post('/:userID/reset-password', AuthController.resetPassword); //userID here is the actual user_id not short_id
+auth.post('/:userID/reset-password', AuthController.verifyPasswordReset); // userID here is the actual user_id not short_id
 auth.put('/:userID/reset-password', AuthMiddleware.canResetPassword,  AuthController.resetPassword);
 
 
