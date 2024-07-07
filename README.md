@@ -3,8 +3,10 @@ Backend system for WNI's web platform
 
 ## GOALS
 
-- Implement auth middlewares `canResetPassword`, `requireAuth`, `requireVerification`
+- Make `reset-password` atomic
+- Create user actions
 
+## BUGS
 
 ## DATABASE && DB Schema
 
@@ -15,7 +17,7 @@ Backend system for WNI's web platform
 - Reset Password and VerifyUser implemented
 
 ## HOW TO USE
-- Response: `error` field for error && success field for `successful` api calls
+- Response: `error` field for error && `success` field for successful api calls
 
 
 ### AUTH Routes

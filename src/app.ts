@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
-import auth from "./auth/auth.route";
+import auth from "./auth/auth.routes";
 
 const app = express();
 const PATH = '/api/v1';

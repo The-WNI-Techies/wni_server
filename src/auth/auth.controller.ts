@@ -4,7 +4,7 @@ import IAppRequest from "../interfaces/IAppRequest";
 import { Response } from "express";
 import User from "../user/user.model";
 import userValidationSchema from "../validation/userValidation";
-import { hash } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import shortUUID from "short-uuid";
 import { ResetPasswordToken } from "./auth.model";
 import EmailService from "../emails/email.service";
@@ -17,6 +17,13 @@ class AuthController {
         })
     }
 
+    private static generateOTP() {
+        return crypto.randomUUID().split('-').map(token => {
+            if(typeof token[0] === 'string') return token[0].toUpperCase();
+            return token[0];
+        }).join('-');
+    }
+
     static async signUp(req:IAppRequest, res: Response) {
         let { username, email, password } = req.body;
         username = username.trim() , password = password.trim();
@@ -26,7 +33,7 @@ class AuthController {
 
         try {
             const { error } = userValidationSchema.validate({username, email, password});
-            if(error) return res.status(422).json({error: error}); // Return 422 for invalid requests
+            if(error) return res.status(422).json({ error: error.details[0].message }); // Return 422 for invalid requests
 
             const usernameTaken = await User.exists({ username });
             const mailTaken = await User.exists({ email });
@@ -48,14 +55,14 @@ class AuthController {
 
     static async signIn(req: IAppRequest, res: Response) {
         const { username, email, password } = req.body;
-        if((!username && !email) || !password) {
-            return res.status(400).json({error: 'Username or Email and password are required!'});
-        }
-
+        if((!username && !email) || !password) return res.status(400).json({error: 'Username or Email and password are required!'});
         try {
             const user = await User.findOne(email ? { email } : { username });
             if(!user) return res.status(404).json({ error: 'User not found!' });
-            res.setHeader('Authorization', `Bearer ${this.createToken(user._id)}`);
+
+            const passwordMatch = await compare(password, user.password)
+            if(!passwordMatch) return res.status(401).json({ error: `Invalid ${username ? 'username' : 'email'} or password!`})
+            res.setHeader('Authorization', `Bearer ${AuthController.createToken(user._id)}`);
             return res.status(200).json({ success: 'User sign-in succesful' });
         } catch (error) {
             console.error(error);
@@ -75,10 +82,7 @@ class AuthController {
             if(userID !== user.short_id) return res.status(401).json({error: 'Unauthorized!'});
             if(user.verified) return res.status(400).json({ error: 'User has already been verified!' });
 
-            const verificationToken = crypto.randomUUID().split('-').map(token => {
-                if(typeof token[0] === 'string') return token[0].toUpperCase();
-                return token[0];
-            }).join('-');
+            const verificationToken = AuthController.generateOTP();
 
             user.vToken = verificationToken;
             user.save();
@@ -88,9 +92,7 @@ class AuthController {
         } catch (error) {
             return res.status(500).json({ error: 'Internal server error!' });
         }
-        
-        
-        
+  
     }
 
     static async verifyUser(req: IAppRequest, res: Response) {
@@ -105,7 +107,7 @@ class AuthController {
             user.verified = true;
             user.save();
 
-            res.setHeader('Authorization', `Bearer ${this.createToken(user._id)}`);
+            res.setHeader('Authorization', `Bearer ${AuthController.createToken(user._id)}`);
             return res.status(200).json({ success: 'User verified successfully', verified: user.verified });
         } catch (error) {
             console.error(error);
@@ -118,12 +120,20 @@ class AuthController {
         const { email } = req.body;
         if(!userID || !email) return res.status(422).json({error: 'Malformed request'});
 
-        const user = await User.findOne({ email});
+        const user = await User.findOne({ email });
         if(!user) return res.status(404).json({error: 'User not found'});
         if(userID !== user.short_id) {
             return res.status(401).json({error: 'Unauthorized!'});
         }
-        const userTokenStore = await ResetPasswordToken.create({ user: user._id, token: crypto.randomUUID() });
+        
+        // Delete old tokens anytime there is a newly generated token if any to avoid duplicate error
+        const oldToken = await ResetPasswordToken.exists({user: user._id});
+        if(oldToken) {
+            const deletedToken = await ResetPasswordToken.findOneAndDelete({user: user._id});
+            if(!deletedToken) return res.status(500).json({ error: 'Error in generating reset token. Please try again' });
+        }
+
+        const userTokenStore = await ResetPasswordToken.create({ user: user._id, token: AuthController.generateOTP() });
         userTokenStore.save();
 
         //!Send token to user mail
@@ -132,39 +142,35 @@ class AuthController {
         
     }
 
-    static async verifyPasswordReset(req: IAppRequest, res: Response) {
-        const { token } = req.body;
-        const { userID } = req.params;
-        if(!token || !userID) return res.status(422).json({error: 'Malformed request!'});
-
-        try {
-            const passwordTokenStore = await ResetPasswordToken.findOne({ user: userID });
-            if(!passwordTokenStore) return res.status(404).json({ error: 'No password reset codes found for this user!' });
-            if(token !== passwordTokenStore.token) return res.status(401).json({ error: 'Unauthorized! Incorrect reset token'});
-            return res.status(200).json({ success: 'Token match!' });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-
-    }
-
     static async resetPassword(req: IAppRequest, res: Response) {
-        const { password } = req.body;
-        const { userID } = req.params;
-
-        if(!password) return res.status(422).json({ error: 'Malformed request! Password is required.' });
+        const { password, resetToken } = req.body;
+        if(!password || !resetToken ) return res.status(422).json({ error: 'Malformed request!' });
         try {
-            const user = User.findOneAndUpdate({ short_id: userID }, { password });
+            const passwordTokenStore = await ResetPasswordToken.findOne({ token: resetToken });
+            if(!passwordTokenStore) return res.status(401).json({ error: 'Password token not found!' });
+            if(passwordTokenStore.expires.valueOf() < Date.now().valueOf()) {
+                await ResetPasswordToken.findOneAndDelete({ token: resetToken });
+                return res.status(400).json({ error: 'Token has expired :('});
+            }
+            const user = await User.findById(passwordTokenStore.user);
             if(!user) return res.status(404).json({ error: 'User not found!' });
-            return res.status(200).json({ success: 'Password updated successfully!'})
+
+            const { error } = userValidationSchema.validate({ username: user.username, email: user.email, password });
+            if(error) return res.status(400).json({ error: error.details[0].message });
+
+            // !TODO: Make password reset atomic
+            user.password = await hash(password, 10);
+            // Delete reset tokens for the user before you save
+            const deletedToken = await ResetPasswordToken.findOneAndDelete({ token: resetToken });
+            if(!deletedToken) return res.status(400).json({ error: 'Couldn\'t update your password' })
+            user.save();
+
+            return res.status(200).json({ success: 'Password reset successful! '});
+
         } catch (error) {
             console.error(error);
-            return res.status(500).json({error: 'Internal server error!'});
+            return res.status(500).json({ error: 'Internal server error!' });
         }
-        
-
-        
     }
 }
 

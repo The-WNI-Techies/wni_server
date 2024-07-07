@@ -40,23 +40,6 @@ class AuthMiddleware {
         next() 
     }
 
-    static async canResetPassword(req: IAppRequest, res: Response, next: NextFunction) {
-        const { userID } = req.params;
-        if(!userID) return res.status(422).json({ error: 'Malformed request!' });
-        try {
-            const user = await User.findOne({ short_id: userID });
-            if(!user) return res.status(404).json({ error: 'User not found!' });
-            const resetToken = await ResetPasswordToken.findOne({ user: user._id });
-            if(!resetToken) return res.status(404).json({ error: 'No reset passswords found for this user :( ' });
-            next();
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error!'} );
-        }
-        next();
-
-    }
-
 }
 
 export default AuthMiddleware;

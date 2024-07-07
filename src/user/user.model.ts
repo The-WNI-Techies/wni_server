@@ -18,7 +18,7 @@ const userSchema = new Schema({
     role: {
         type: String,
         enum: ['user', 'super_user', 'admin'],
-        default: 'regular'
+        default: 'user'
     },
     email: {
         type: String,

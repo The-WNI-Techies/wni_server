@@ -11,7 +11,7 @@ function AnHourFromCurrentTime() {
 const ResetPasswordTokenSchema = new Schema({
     user : {
         type: Schema.Types.ObjectId,
-        ref: User,
+        ref: 'User',
         unique: true,
         required: true
     },
