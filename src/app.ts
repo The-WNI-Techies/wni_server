@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import auth from "./auth/auth.routes";
+import user from "./user/user.routes";
+import AuthMiddleware from "./auth/auth.middleware";
 
 const app = express();
 const PATH = '/api/v1';
@@ -18,6 +20,7 @@ app.get("/healthz", (_req: Request, res: Response) => {
 	res.send("Ready for some server-side shit!");
 });
 app.use(`${PATH}/auth`, auth);
+app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
 
 
 mongoose.connect(process.env.MONGO_URI!)

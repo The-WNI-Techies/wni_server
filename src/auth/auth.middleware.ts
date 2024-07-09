@@ -3,8 +3,6 @@ import jwt from "jsonwebtoken";
 import IAppRequest from "../interfaces/IAppRequest";
 import { Types } from "mongoose";
 import User from "../user/user.model";
-import { ResetPasswordToken } from "./auth.model";
-
 
 class AuthMiddleware {
 
@@ -17,6 +15,7 @@ class AuthMiddleware {
         try {
             const user = await User.findById(id);
             if(!user) return res.status(404).json({ error: 'User not found!' });
+            req.user = user;
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal server error'});
@@ -25,10 +24,10 @@ class AuthMiddleware {
     }
 
     static async requireVerification(req: IAppRequest, res: Response, next: NextFunction ) { 
-        const { userID } = req.params;
-        if(!userID) return res.status(422).json({ error: 'Malformed request! userID required' });
+        const id = req.user?._id;
+        if(!id) return res.status(422).json({ error: 'Malformed request! userID required' });
         try {
-            const user = await User.findOne({ short_id: userID });
+            const user = await User.findById(id)
             if(!user) return res.status(404).json({ error: 'User not found!' });
             if(!user.verified) return res.status(400).json({ error: 'User is not verified!' });
             next()

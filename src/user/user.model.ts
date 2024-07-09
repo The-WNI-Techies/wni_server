@@ -10,6 +10,10 @@ const userSchema = new Schema({
     age: {
         type: Number
     },
+    profile_image_uri: {
+        type: String,
+        default: "http://file_server.com/profile_img"
+    },
     username: {
         type: String,
         required: true,
