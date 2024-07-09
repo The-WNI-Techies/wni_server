@@ -7,7 +7,7 @@ Backend system for WNI's web platform
 - Create user actions
 
 ## BUGS
-
+- Had to remove sub-apps and use router for middlewares to work correctly between apps.
 ## DATABASE && DB Schema
 
 - Server configured to listen for request only when DB is running

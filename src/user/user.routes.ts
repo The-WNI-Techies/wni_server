@@ -1,13 +1,13 @@
-import express from "express";
+import { Router } from "express";
 import multer from "multer";
 import UserController from "./user.controller";
 import AuthMiddleware from "../auth/auth.middleware";
 
-const user = express();
+const router = Router();
 
-const upload = multer({ dest: `../../${__dirname}/uploads/` });
+const upload = multer({ dest: `/home/yemi/Projects/wni_server/uploads/` });
 
-user.patch('/profile', AuthMiddleware.requireVerification, upload.single('profileAvatar'), UserController.updateProfileInfo);
+router.patch('/profile', AuthMiddleware.requireVerification, upload.single('profileAvatar'), UserController.updateProfileInfo);
 
 
-export default user;
+export default router;

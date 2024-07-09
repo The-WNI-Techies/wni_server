@@ -8,7 +8,10 @@ import AuthMiddleware from "./auth/auth.middleware";
 
 const app = express();
 const PATH = '/api/v1';
-const corsOptions: CorsOptions = {}
+const corsOptions: CorsOptions = {
+	origin: '*',
+	exposedHeaders: ['Authorization'],
+}
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
