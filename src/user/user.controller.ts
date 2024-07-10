@@ -1,8 +1,6 @@
 import { Response } from "express";
 import IAppRequest from "../interfaces/IAppRequest";
 import User from "./user.model";
-import UserService from "./user.service";
-import { Types } from "mongoose";
 import IUser from "../interfaces/IUser";
 
 class UserController {
@@ -12,13 +10,7 @@ class UserController {
         if(!userID) return res.status(422).json({ error: 'Mallformed request' });
         
         try {
-            const user = await User.findOne({ short_id: userID }).select([
-                    'username', 
-                    'email', 
-                    'password', 
-                    'short_id', 
-                    'createdAt'
-                ]);
+            const user = await User.findOne({ short_id: userID });
             if(!user) return res.status(404).json({ error: 'User not found!' });
             return res.status(200).json({ success: 'User found!', user });
         } catch (error) {
@@ -50,9 +42,19 @@ class UserController {
         }
     }
 
-    static async editProfile(req: IAppRequest, res: Response) {}
+    static async deleteProfile(req: IAppRequest, res: Response) {
+        const id = req.user?._id;
+        if(!id) return res.status(401).json({error: 'User not found!' });
+        try {
+            const deletedUser = await User.findByIdAndDelete(id);
+            if(!deletedUser) return res.status(400).json({ error: 'Error deleting user' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error!' });
+        }
+        
 
-    static async deleteProfile(req: IAppRequest, res: Response) {}
+    }
 
 }
 

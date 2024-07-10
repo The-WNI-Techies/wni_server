@@ -1,5 +1,4 @@
 import { model, Schema } from "mongoose";
-import User from "../user/user.model";
 
 function AnHourFromCurrentTime() {
     const now = new Date();
