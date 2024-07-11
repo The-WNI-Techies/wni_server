@@ -4,6 +4,7 @@ import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import auth from "./auth/auth.routes";
 import user from "./user/user.routes";
+import chat from "./chat/chat.routes";
 import AuthMiddleware from "./auth/auth.middleware";
 
 const app = express();
@@ -18,11 +19,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some server-side shit!"));
 app.use(`${PATH}/auth`, auth);
 app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
+app.use(`${PATH}/chat`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, chat);
 
+app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some server-side shit!"));
 
 mongoose.connect(process.env.MONGO_URI!)
 	.then(() => {

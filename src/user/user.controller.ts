@@ -2,6 +2,7 @@ import { Response } from "express";
 import IAppRequest from "../interfaces/IAppRequest";
 import User from "./user.model";
 import IUser from "../interfaces/IUser";
+import { NONAME } from "dns/promises";
 
 class UserController {
 
@@ -43,11 +44,10 @@ class UserController {
     static async deleteProfile(req: IAppRequest, res: Response) {
         const id = req.user?._id;
         try {
-            const deletedUser = await User.findByIdAndDelete(id);
-            if(!deletedUser) return res.status(400).json({ error: 'Error deleting user' });
+            await User.findByIdAndDelete(id);
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error!' });
+            return res.status(500).json({ error: 'Error deleting user!' });
         }    
 
     }
@@ -79,6 +79,23 @@ class UserController {
             return res.status(500).json({ error: 'Internal server error!' });
         }
 
+    }
+
+    static async searchUsers(req: IAppRequest, res: Response) {
+        const { name } = req.query;
+        try {
+            if(!name?.toString().trim()) {
+                return res.status(422).json({error: 'Search arguments not provided'})
+            }
+            const nameQuery = new RegExp(`${name.toString().trim()}`, 'i');
+            const matchedUsers = await User.find({ username: nameQuery });
+            if(matchedUsers.length < 1) {
+                return res.status(404).json({ error: 'No user found!' })
+            }
+            return res.status(200).json({ success: 'Users found', matches: matchedUsers });
+        } catch (error) {
+            return res.status(500).json({ error: 'Internal server error!'})
+        }
     }
 
 }

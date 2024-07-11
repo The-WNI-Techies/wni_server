@@ -6,6 +6,7 @@ Backend system for WNI's web platform
 - Make `reset-password` atomic
 - Handle image upload efficiently
 - Create a distinct web-socket server for managing chat
+- Cascade user rooms and messages or set to null if user is deleted
 
 ## BUGS
 (None)[https://adeyemiabiade.vercel.app]

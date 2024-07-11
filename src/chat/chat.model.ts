@@ -20,11 +20,6 @@ const chatRoomSchema = new Schema({
         ref: 'User',
         required: true
     },
-    hosts: [{
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true   
-    }],
     name: {
         type: String,
         required: true
@@ -33,17 +28,29 @@ const chatRoomSchema = new Schema({
         type: String
     },
     participants: [{
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        unique: true
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            unique: true
+        },
+        role: {
+            type: String,
+            enum: [ 'regular', 'moderator' ],
+            default: 'regular'
+        }
     }],
     messages: [{
         type: Schema.Types.ObjectId,
         ref: 'Message'
-    }]
+    }],
+    mode: {
+        type: String,
+        enum: ['silent', 'admins_only', 'normal'],
+        default: 'normal'
+    }
 });
 
 
-const chatRoomModel = model('chatRoom', chatRoomSchema);
+const ChatRoom = model('chatRoom', chatRoomSchema);
 
-export default chatRoomModel;
+export default ChatRoom;

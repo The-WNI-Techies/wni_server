@@ -9,6 +9,7 @@ const uploadDestination = `/home/yemi/Projects/wni_server/uploads/`
 const upload = multer({ dest:  uploadDestination });
 
 router.get('/', UserController.getAllUsers);
+router.get('/search', UserController.searchUsers);
 router.get('/admins', UserController.getAdmins);
 router.get('/profile', UserController.getUserInfo);
 router.patch('/profile', AuthMiddleware.requireVerification, upload.single('profileAvatar'), UserController.updateProfileInfo);
