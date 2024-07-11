@@ -31,11 +31,9 @@ class UserController {
             if(gender) updateData.gender = gender;
             if(age) updateData.age = parseInt(age);
             if(profileAvatar) updateData.profile_image_uri = profileAvatar.path;
-            console.log('Update data', updateData)
             
             const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
-            console.log(updatedUser);
-            if(!updatedUser) return res.status(202).json({ error: 'Could not process input! Retry' });
+            if(!updatedUser) return res.status(202).json({ error: 'Could not process input! Retry!' });
             return res.status(200).json({success: 'Updated successfully', user: updatedUser});
         } catch (error) {
             res.status(500).json({ error: 'Internal server error!' });
@@ -44,15 +42,42 @@ class UserController {
 
     static async deleteProfile(req: IAppRequest, res: Response) {
         const id = req.user?._id;
-        if(!id) return res.status(401).json({error: 'User not found!' });
         try {
             const deletedUser = await User.findByIdAndDelete(id);
             if(!deletedUser) return res.status(400).json({ error: 'Error deleting user' });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal server error!' });
-        }
+        }    
+
+    }
+
+    static async getAllUsers(req: IAppRequest, res: Response) {
+        try {
+            let page: any = req.query.page;
+            page = parseInt(page as string) || 1;
+            const limit = 5;
+            const skipValue = (page -1) * limit;
+            const userCount = await User.countDocuments();
+            const pagesCount = Math.ceil(userCount / limit);
+
+            const users = await User.find().sort().skip(skipValue).limit(limit);
+            return res.status(200).json({success: 'Users found!', users, remaining_pages: pagesCount - page})
         
+        } catch (error) {
+            return res.status(500).json({ error: 'Internal server error!' });
+        }
+    }
+
+    static async getAdmins(req: IAppRequest, res: Response) {
+        try {
+            const admins = await User.find({ role: 'admin' });
+            if(!admins) return res.status(400).json({ error: 'Could not get admins' });
+            return res.status(200).json({ success: 'Admins found', admins });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error!' });
+        }
 
     }
 

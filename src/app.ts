@@ -19,9 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.get("/healthz", (_req: Request, res: Response) => {
-	res.send("Ready for some server-side shit!");
-});
+app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some server-side shit!"));
 app.use(`${PATH}/auth`, auth);
 app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
 

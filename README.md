@@ -4,10 +4,11 @@ Backend system for WNI's web platform
 ## GOALS
 
 - Make `reset-password` atomic
-- Create user actions
+- Handle image upload efficiently
+- Create a distinct web-socket server for managing chat
 
 ## BUGS
-- Had to remove sub-apps and use router for middlewares to work correctly between apps.
+(None)[https://adeyemiabiade.vercel.app]
 ## DATABASE && DB Schema
 
 - Server configured to listen for request only when DB is running
