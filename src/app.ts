@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import auth from "./auth/auth.routes";
 import user from "./user/user.routes";
 import chat from "./chat/chat.routes";
-import AuthMiddleware from "./auth/auth.middleware";
+import AuthMiddleware from "./auth/auth.middlewares";
 
 const app = express();
 const PATH = '/api/v1';

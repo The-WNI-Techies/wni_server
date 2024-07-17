@@ -4,6 +4,7 @@ interface IChatRoom {
     creator: Types.ObjectId;
     name: string;
     description?: string;
+    join_id: string;
     messages?: Array<Types.ObjectId>;
     mode?: string;
     participants: Types.DocumentArray<{

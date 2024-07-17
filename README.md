@@ -9,7 +9,8 @@ Backend system for WNI's web platform
 - Cascade user rooms and messages or set to null if user is deleted
 
 ## BUGS
-(None)[https://adeyemiabiade.vercel.app]
+[None](https://adeyemiabiade.vercel.app)
+
 ## DATABASE && DB Schema
 
 - Server configured to listen for request only when DB is running

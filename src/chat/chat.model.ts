@@ -11,7 +11,7 @@ const messageSchema = new Schema({
     }
 });
 
-export const messageModel = model('message', messageSchema);
+export const Message = model('message', messageSchema);
 
 
 const chatRoomSchema = new Schema({
@@ -47,6 +47,10 @@ const chatRoomSchema = new Schema({
         type: String,
         enum: ['silent', 'admins_only', 'normal'],
         default: 'normal'
+    },
+    join_id: {
+        type: String,
+        required: true
     }
 });
 

@@ -1,8 +1,10 @@
 import IAppRequest from "../interfaces/IAppRequest";
 import { Response } from "express";
-import ChatRoom from "./chat.model";
+import ChatRoom, { Message } from "./chat.model";
 import IChatRoom from "../interfaces/IChatRoom";
 import { isValidObjectId, Types } from "mongoose";
+import roomValidationSchema from "../validation/roomValidation";
+import shortUUID from "short-uuid";
 
 class ChatController {
 
@@ -11,15 +13,18 @@ class ChatController {
         const id = req.user?._id as Types.ObjectId;
 
         try {
-            if(!name) {
-                return res.status(422).json({ error: 'Name required!'})
-            }
-            const roomData: Partial<IChatRoom> = { name, creator: id  };
+            const roomData: Partial<IChatRoom> = { name, creator: id, join_id: shortUUID.uuid()  };
             if(description) roomData.description = description;
-
+            
+            const { error } = roomValidationSchema.validate(roomData);
+            if(error) {
+                return res.status(422).json({ error: error.details[0].message });
+            }
             const room = await ChatRoom.create(roomData);
-            room.save();
+            await room.save();
+            return res.status(201).json({ success: 'Room created successfully' });
         } catch (error) {
+            console.error(error);
             return res.status(500).json({ error: 'Error creating room, try again' })
         }
     }
@@ -66,18 +71,35 @@ class ChatController {
         }
     }
 
-    static async myRooms(req: IAppRequest, res: Response) {}
+    static async editRoom(req: IAppRequest, res: Response) {
+        const { name, description, mode, join_id } = req.body;
+        const roomID = req.params;
 
-    static async editRoom(req: IAppRequest, res: Response) {}
-    
-    static async joinRoom(req: IAppRequest, res: Response) {
-        const { roomID } = req.params;
-        const user = req.user?._id;
-        if(!isValidObjectId(roomID)) {
-            return res.status(422).json({ error: 'No such room!' });
+        try {
+            let roomData: Partial<IChatRoom> = {};
+            if(name) roomData.name = name;
+            if(description) roomData.description = description;
+            if(mode) roomData.mode = mode;
+            if(join_id) roomData.join_id = join_id;
+
+            const { error } = roomValidationSchema.validate(roomData);
+            if(error) {
+                return res.status(400).json({ error: error.details[0].message });
+            }
+
+            await ChatRoom.findByIdAndUpdate(roomID, roomData, { new: true });
+            return res.status
+        } catch (error) {
+            return res.status(500).json({ error: 'Error updating room' });
         }
 
-        const room = await ChatRoom.findById(roomID);
+    }
+    
+    static async joinRoom(req: IAppRequest, res: Response) {
+        const { joinID } = req.params;
+        const user = req.user?._id;
+
+        const room = await ChatRoom.findOne({ join_id: joinID });
         if(!room) return res.status(404).json({ error: 'Room not found!' });
 
         console.log(room.participants);
@@ -104,15 +126,48 @@ class ChatController {
     }
 
     static async leaveRoom(req: IAppRequest, res: Response) {
+        //!TODO => Impplement leave room logic.
         /* 
         Room moderators can remove anyone from a room 
         and participants can only remove themselves
         */
     }
 
-    static async sendMessage(req: IAppRequest, res: Response) {}
+    static async sendMessage(req: IAppRequest, res: Response) {
+        const { roomID } = req.params;
+        const { content } = req.body;
+        const userID = req.user?._id;
 
-    static async deleteMessage(req: IAppRequest, res: Response) {}
+        try {
+            if(!content) {
+                return res.status(422).json({ error: 'No message body'});
+            }
+
+            const mssg = await Message.create({ author: userID, content });
+            if(!mssg) {
+                return res.status(400).json({ error: 'Error creating rooms'})
+            }
+
+            const room = await ChatRoom.findById(roomID);
+            if(!room) {
+                return res.status(404).json({ error: 'Room not found!' });
+            }
+            await ChatRoom.findByIdAndUpdate(roomID, 
+                { mesages: [ ...room.messages, mssg._id ] }, 
+                { new: true }
+            );
+            await mssg.save();
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Error sending message' });
+        }
+    }
+
+    static async deleteMessage(req: IAppRequest, res: Response) {
+        const userID = req.user?._id;
+
+        // !TODO => Delete message and remove its ref from any room
+    }
 }
 
 export default ChatController;

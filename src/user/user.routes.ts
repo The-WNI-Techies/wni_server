@@ -1,11 +1,12 @@
 import { Router } from "express";
 import multer from "multer";
 import UserController from "./user.controller";
-import AuthMiddleware from "../auth/auth.middleware";
+import AuthMiddleware from "../auth/auth.middlewares";
+import path from "path";
 
 const router = Router();
 
-const uploadDestination = `/home/yemi/Projects/wni_server/uploads/`
+const uploadDestination = path.resolve(__dirname, '../../uploads')
 const upload = multer({ dest:  uploadDestination });
 
 router.get('/', UserController.getAllUsers);
