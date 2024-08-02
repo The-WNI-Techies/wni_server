@@ -2,7 +2,6 @@ import { Response } from "express";
 import IAppRequest from "../interfaces/IAppRequest";
 import User from "./user.model";
 import IUser from "../interfaces/IUser";
-import { NONAME } from "dns/promises";
 
 class UserController {
 
@@ -51,7 +50,7 @@ class UserController {
         }    
 
     }
-
+                                                                                                                                                                                                            
     static async getAllUsers(req: IAppRequest, res: Response) {
         try {
             let page: any = req.query.page;
@@ -69,7 +68,7 @@ class UserController {
         }
     }
 
-    static async getAdmins(req: IAppRequest, res: Response) {
+    static async getAdmins(_req: IAppRequest, res: Response) {
         try {
             const admins = await User.find({ role: 'admin' });
             if(!admins) return res.status(400).json({ error: 'Could not get admins' });
