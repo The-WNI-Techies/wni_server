@@ -8,8 +8,8 @@ Backend system for WNI's web platform
 - Create a .env file in the root of the project dir and add the following:
 ```sh
 PORT=8000
-ENVIRONMENT=DEVELOPMENT
-ACCESS_SECRET=<your-access-secret>
+NODE_ENV=DEVELOPMENT
+ACCESS_SECRET=<your-access-secret>ENVIRONMENT
 REFRESH_SECRET=<your-refresh-secret>
 MONGO_URI=<your_mongo_db_connection_string>
 ```

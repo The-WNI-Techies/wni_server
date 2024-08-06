@@ -16,9 +16,7 @@ class AuthController {
 		/* @param expiresIn
 			Accepts the token expiration in seconds
 		 */
-		return jwt.sign({ id: payload }, secret_key, {
-			expiresIn,
-		});
+		return jwt.sign({ id: payload }, secret_key, { expiresIn });
 	}
 
 	private static generateOTP() {
@@ -103,7 +101,7 @@ class AuthController {
 				{
 					maxAge: tokens.REFRESH_COOKIE_EXPIRES,
 					httpOnly: true,
-					secure: process.env.ENVIRONMENT === 'PRODUCTION' ? true : false
+					secure: process.env.NODE_ENV === 'PRODUCTION' ? true : false
 				})
 			return res.status(200).json({ success: "User sign-in successful" });
 		} catch (error) {
@@ -290,8 +288,8 @@ class AuthController {
 			}
 			res.setHeader('Authorization',
 				`Bearer ${this.createToken(
-					userID, 
-					tokens.ACCESS_SECRET, 
+					userID,
+					tokens.ACCESS_SECRET,
 					tokens.ACCESS_TOKEN_EXPIRES)
 				}`
 			);
