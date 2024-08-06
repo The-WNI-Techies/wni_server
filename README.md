@@ -1,6 +1,36 @@
 # THE WRITERS NETWORK INTERNATIONAL
 Backend system for WNI's web platform
 
+## HOW TO SETUP
+- Make sure you have a Javascript runtime and a Typescript compiler. (Bun, Node.js, Deno && tsc)
+- Make sure you have npm installed or you are using the Bun runtime
+- Make sure you have properly set up your mongo db server and obtained a connection string
+- Create a .env file in the root of the project dir and add the following:
+```sh
+ENVIRONMENT=DEVELOPMENT
+ACCESS_SECRET=<your-access-secret>
+REFRESH_SECRET=<your-refresh-secret>
+MONGO_URI=<your_mongo_db_connection_string>
+```
+- Install dependencies:
+> Using Bun
+```sh
+bun install
+```
+> Using NPM
+```sh
+npm install
+```
+- Run the Development server
+> Using Bun
+```sh
+bun run dev
+```
+> Using NPM and typescript Compiler
+```sh
+npm run node_dev
+```
+Or better still **setup** your own configuration for hot-reloading
 ## GOALS
 
 - Make `reset-password` atomic
@@ -56,4 +86,45 @@ async function fetchData() {
         }
         return responseData;
 }
+```
+
+### PROJECT STRUCTURE
+```sh
+.
+├── bun.lockb
+├── package.json
+├── README.md
+├── src
+│   ├── app.ts
+│   ├── auth
+│   │   ├── auth.controller.ts
+│   │   ├── auth.middlewares.ts
+│   │   ├── auth.model.ts
+│   │   └── auth.routes.ts
+│   ├── chat
+│   │   ├── chat.controller.ts
+│   │   ├── chat.model.ts
+│   │   ├── chat.routes.ts
+│   │   └── chat.service.ts
+│   ├── config
+│   │   └── constants.ts
+│   ├── emails
+│   │   ├── email.service.ts
+│   │   └── templates
+│   │       ├── password_reset.html
+│   │       └── verification_email.html
+│   ├── interfaces
+│   │   ├── IAppRequest.ts
+│   │   ├── IChatRoom.ts
+│   │   └── IUser.ts
+│   ├── user
+│   │   ├── user.controller.ts
+│   │   ├── user.model.ts
+│   │   ├── user.routes.ts
+│   │   └── user.service.ts
+│   └── validation
+│       ├── roomValidation.ts
+│       └── userValidation.ts
+└── tsconfig.json
+
 ```

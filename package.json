@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "tsc && bun dist/app.js",
-    "dev": "bun --env-file .env  --watch src/app.ts"
+    "dev": "bun --env-file .env  --watch src/app.ts",
+    "node_dev": "tsc && node --env-file .env dist/app.ts"
   },
   "author": "Adeyemi Abiade (Commandliner)",
   "license": "ISC",
