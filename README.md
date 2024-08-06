@@ -7,6 +7,7 @@ Backend system for WNI's web platform
 - Make sure you have properly set up your mongo db server and obtained a connection string
 - Create a .env file in the root of the project dir and add the following:
 ```sh
+PORT=8000
 ENVIRONMENT=DEVELOPMENT
 ACCESS_SECRET=<your-access-secret>
 REFRESH_SECRET=<your-refresh-secret>

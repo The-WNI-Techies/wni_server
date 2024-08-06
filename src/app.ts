@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import mongoose from "mongoose";
+import DB from "./config/db";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import auth from "./auth/auth.routes";
@@ -25,7 +25,7 @@ app.use(`${PATH}/chat`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerifi
 
 app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some server-side shit!"));
 
-mongoose.connect(process.env.MONGO_URI!)
+DB.connect()
 	.then(() => {
 		app.listen(process.env.PORT, () => {
 			console.log(`Listening on port ${process.env.PORT}`);
