@@ -9,13 +9,17 @@ import shortUUID from "short-uuid";
 import { ResetPasswordToken } from "./auth.model";
 import EmailService from "../emails/email.service";
 import { tokens } from "../config/constants";
+import { ObjectId } from "mongodb";
 
 class AuthController {
-
+	/**
+	 * Creates a jwt token using the user's id as the payload
+	 * @param secret_key - secret used to sign the token
+	 * @param expiresIn - The expiry date of the token in seconds
+	 * @return A signed JWT token
+	 */
 	private static createToken(payload: Types.ObjectId, secret_key: string, expiresIn: number) {
-		/* @param expiresIn
-			Accepts the token expiration in seconds
-		 */
+
 		return jwt.sign({ id: payload }, secret_key, { expiresIn });
 	}
 
@@ -32,7 +36,7 @@ class AuthController {
 
 	static async signUp(req: IAppRequest, res: Response) {
 		let { username, email, password } = req.body;
-		(username = username.trim()), (password = password.trim());
+		username = username.trim(), password = password.trim();
 		if (!username || !email || !password) {
 			return res.status(404).json("Username, email and password are required parameters!");
 		}
@@ -72,12 +76,12 @@ class AuthController {
 	static async signIn(req: IAppRequest, res: Response) {
 		const { username, email, password } = req.body;
 		if ((!username && !email) || !password)
-			return res
-				.status(400)
-				.json({ error: "Username or Email and password are required!" });
+			return res.status(400).json({ error: "Username or Email and password are required!" });
 		try {
 			const user = await User.findOne(email ? { email } : { username });
-			if (!user) return res.status(404).json({ error: "User not found!" });
+			if (!user) {
+				return res.status(401).json({ error: `Invalid ${username ? "username" : "email"} or password!` });
+			}
 
 			const passwordMatch = await compare(password, user.password);
 			if (!passwordMatch)
@@ -94,7 +98,7 @@ class AuthController {
 
 				)}`
 			);
-			res.cookie('refresh', this.createToken(user._id,
+			res.cookie('refresh', AuthController.createToken(user._id,
 				tokens.REFRESH_SECRET as string,
 				tokens.REFRESH_TOKEN_EXPIRES
 			),
@@ -168,7 +172,7 @@ class AuthController {
 				)}`
 			);
 			res.cookie('Refresh',
-				this.createToken(user._id, tokens.REFRESH_SECRET, 60 * 60 * 24 * 30),
+				AuthController.createToken(user._id, tokens.REFRESH_SECRET, 60 * 60 * 24 * 30),
 				{
 					maxAge: 1000 * 60 * 60 * 24 * 30
 				}
@@ -188,52 +192,64 @@ class AuthController {
 	static async generatePasswordResetToken(req: IAppRequest, res: Response) {
 		const { userID } = req.params;
 		const { email } = req.body;
-		if (!userID || !email)
-			return res.status(422).json({ error: "Malformed request" });
 
-		const user = await User.findOne({ email });
-		if (!user) return res.status(404).json({ error: "User not found" });
-		if (userID !== user.short_id) {
-			return res.status(401).json({ error: "Unauthorized!" });
-		}
+		try {
+			if (!userID || !email)
+				return res.status(422).json({ error: "Malformed request" });
 
-		// Delete old tokens anytime there is a newly generated token if any to avoid duplicate error
-		const oldToken = await ResetPasswordToken.exists({ user: user._id });
-		if (oldToken) {
-			const deletedToken = await ResetPasswordToken.findOneAndDelete({
+			const user = await User.findOne({ email });
+			if (!user) return res.status(404).json({ error: "User not found" });
+			if (userID !== user.short_id) {
+				return res.status(401).json({ error: "Unauthorized!" });
+			}
+
+			// Delete old tokens anytime there is a newly generated token if any to avoid duplicate error
+			const oldToken = await ResetPasswordToken.exists({ user: user._id });
+			if (oldToken) {
+				const deletedToken = await ResetPasswordToken.findOneAndDelete({
+					user: user._id,
+				});
+				if (!deletedToken)
+					return res
+						.status(500)
+						.json({ error: "Error in generating reset token. Please try again" });
+			}
+
+			const userTokenStore = await ResetPasswordToken.create({
 				user: user._id,
+				token: AuthController.generateOTP(),
 			});
-			if (!deletedToken)
-				return res
-					.status(500)
-					.json({ error: "Error in generating reset token. Please try again" });
+			userTokenStore.save();
+
+			//!Send token to user mail
+			EmailService.sendPasswordResetToken(
+				user.email,
+				user.username,
+				userTokenStore.token
+			);
+			return res
+				.status(200)
+				.json({
+					success: "ResetPassword Token has been created",
+					short_id: user.short_id,
+				});
+		} catch (error) {
+			switch((error as Error).name) {
+				case "TokenExpiredError":
+					return res.status(403).json({ error: "Auth session Expired!" });
+				default:
+					console.error(error);
+					break;
+			}
+			return res.status(500).json({ error: "Internal server error!" });
 		}
 
-		const userTokenStore = await ResetPasswordToken.create({
-			user: user._id,
-			token: AuthController.generateOTP(),
-		});
-		userTokenStore.save();
-
-		//!Send token to user mail
-		EmailService.sendPasswordResetToken(
-			user.email,
-			user.username,
-			userTokenStore.token
-		);
-		return res
-			.status(200)
-			.json({
-				success: "ResetPassword Token has been created",
-				short_id: user.short_id,
-			});
 	}
 
 	static async resetPassword(req: IAppRequest, res: Response) {
 		const { password, resetToken } = req.body;
-		if (!password || !resetToken)
-			return res.status(422).json({ error: "Malformed request!" });
 		try {
+			if (!password || !resetToken) return res.status(422).json({ error: "Malformed request!" });
 			const passwordTokenStore = await ResetPasswordToken.findOne({
 				token: resetToken,
 			});
@@ -287,7 +303,7 @@ class AuthController {
 				return res.status(404).json({ error: 'User not found!' });
 			}
 			res.setHeader('Authorization',
-				`Bearer ${this.createToken(
+				`Bearer ${AuthController.createToken(
 					userID,
 					tokens.ACCESS_SECRET,
 					tokens.ACCESS_TOKEN_EXPIRES)

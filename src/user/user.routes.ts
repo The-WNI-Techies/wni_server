@@ -11,7 +11,7 @@ const upload = multer({ dest:  uploadDestination });
 
 router.get('/', UserController.getAllUsers);
 router.get('/search', UserController.searchUsers);
-router.get('/admins', UserController.getAdmins);
+router.get('/admins', AuthMiddleware.requireAuth, UserController.getAdmins);
 router.get('/profile', UserController.getUserInfo);
 router.patch('/profile', AuthMiddleware.requireVerification, upload.single('profileAvatar'), UserController.updateProfileInfo);
 router.delete('/delete_profile', AuthMiddleware.requireVerification, UserController.deleteProfile);
