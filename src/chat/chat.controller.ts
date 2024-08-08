@@ -13,7 +13,7 @@ class ChatController {
         const id = req.user?._id as Types.ObjectId;
 
         try {
-            const roomData: Partial<IChatRoom> = { name, creator: id, join_id: shortUUID.uuid()  };
+            const roomData: Partial<IChatRoom> = { name, creator: id, join_id: shortUUID.uuid() };
             if(description) roomData.description = description;
             
             const { error } = roomValidationSchema.validate(roomData);

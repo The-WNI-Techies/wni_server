@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import IAppRequest from "../interfaces/IAppRequest";
-import { Response } from "express";
+import { CookieOptions, Response } from "express";
 import User from "../user/user.model";
 import userValidationSchema from "../validation/userValidation";
 import { compare, hash } from "bcryptjs";
@@ -9,7 +9,6 @@ import shortUUID from "short-uuid";
 import { ResetPasswordToken } from "./auth.model";
 import EmailService from "../emails/email.service";
 import { tokens } from "../config/constants";
-import { ObjectId } from "mongodb";
 
 class AuthController {
 	/**
@@ -61,9 +60,8 @@ class AuthController {
 			user.short_id = shortUUID.generate();
 			user.save();
 
-			res
-				.status(201)
-				.json({
+			res.status(201).json(
+				{
 					success: "User created successfully",
 					short_id: user.short_id,
 				});
@@ -85,8 +83,8 @@ class AuthController {
 
 			const passwordMatch = await compare(password, user.password);
 			if (!passwordMatch)
-				return res.status(401)
-					.json({
+				return res.status(401).json(
+					{
 						error: `Invalid ${username ? "username" : "email"} or password!`,
 					});
 			res.setHeader(
@@ -98,15 +96,15 @@ class AuthController {
 
 				)}`
 			);
+			const cookieOpts: CookieOptions = {
+				maxAge: tokens.REFRESH_COOKIE_EXPIRES,
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'PRODUCTION' ? true : false
+			};
 			res.cookie('refresh', AuthController.createToken(user._id,
-				tokens.REFRESH_SECRET as string,
+				tokens.REFRESH_SECRET,
 				tokens.REFRESH_TOKEN_EXPIRES
-			),
-				{
-					maxAge: tokens.REFRESH_COOKIE_EXPIRES,
-					httpOnly: true,
-					secure: process.env.NODE_ENV === 'PRODUCTION' ? true : false
-				})
+			), cookieOpts)
 			return res.status(200).json({ success: "User sign-in successful" });
 		} catch (error) {
 			console.error(error);
@@ -121,7 +119,7 @@ class AuthController {
 		if (!email) return res.status(400).json({ error: "Email required!" });
 		try {
 			const user = await User.findOne({ email });
-			if (!user) return res.status(404).json({ error: "User not found!" });
+			if (!user) return res.status(404).json({ error: "No user found for that email!" });
 
 			if (userID !== user.short_id)
 				return res.status(401).json({ error: "Unauthorized!" });
@@ -134,16 +132,23 @@ class AuthController {
 
 			user.vToken = verificationToken;
 			user.save();
-
-			EmailService.sendVerificationEmail(
+			await EmailService.sendVerificationEmail(
 				user.email,
 				user.username,
 				user.vToken
 			);
-			return res
-				.status(200)
-				.json({ success: "Check your mail for verification token" });
+			return res.status(200).json({ success: "Check your mail for verification token" });
+
 		} catch (error) {
+
+			switch ((error as Error).name) {
+				case "DNSException":
+					return res.status(500).json({ error: "Error sending verification email" });
+				default:
+					console.log(error);
+					break;
+			}
+
 			return res.status(500).json({ error: "Internal server error!" });
 		}
 	}
@@ -155,12 +160,13 @@ class AuthController {
 		try {
 			const user = await User.findOne({ short_id: userID });
 			if (!user) return res.status(404).json({ error: "User not found!" });
-			if (vToken !== user.vToken)
+			if (vToken !== user.vToken) {
 				return res.status(401).json({ error: "Invalid verification token!" });
-			if (user.verified)
-				return res
-					.status(400)
-					.json({ error: "User has already been verified!" });
+			}
+			if (user.verified) {
+				return res.status(400).json({ error: "User has already been verified!" });
+			}
+
 			user.verified = true;
 			user.save();
 
@@ -171,15 +177,13 @@ class AuthController {
 					tokens.ACCESS_TOKEN_EXPIRES
 				)}`
 			);
-			res.cookie('Refresh',
-				AuthController.createToken(user._id, tokens.REFRESH_SECRET, 60 * 60 * 24 * 30),
+			res.cookie('refresh',
+				AuthController.createToken(user._id, tokens.REFRESH_SECRET, tokens.REFRESH_TOKEN_EXPIRES),
 				{
-					maxAge: 1000 * 60 * 60 * 24 * 30
+					maxAge: tokens.REFRESH_COOKIE_EXPIRES
 				}
 			)
-			return res
-				.status(200)
-				.json({
+			return res.status(200).json({
 					success: "User verified successfully",
 					verified: user.verified,
 				});
@@ -210,9 +214,7 @@ class AuthController {
 					user: user._id,
 				});
 				if (!deletedToken)
-					return res
-						.status(500)
-						.json({ error: "Error in generating reset token. Please try again" });
+					return res.status(500).json({ error: "Error in generating reset token. Please try again" });
 			}
 
 			const userTokenStore = await ResetPasswordToken.create({
@@ -227,14 +229,13 @@ class AuthController {
 				user.username,
 				userTokenStore.token
 			);
-			return res
-				.status(200)
+			return res.status(200)
 				.json({
 					success: "ResetPassword Token has been created",
 					short_id: user.short_id,
 				});
 		} catch (error) {
-			switch((error as Error).name) {
+			switch ((error as Error).name) {
 				case "TokenExpiredError":
 					return res.status(403).json({ error: "Auth session Expired!" });
 				default:

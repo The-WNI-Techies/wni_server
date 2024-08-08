@@ -1,8 +1,6 @@
 import { Request } from "express";
-import User from "../user/user.model";
 import { Document } from "mongoose";
 
-// const sampleUser = User.find();
 
 interface IAppRequest extends Request {
   user?: Document<
@@ -22,7 +20,7 @@ interface IAppRequest extends Request {
       age?: number | null | undefined;
       gender?: "F" | "M" | null | undefined;
       short_id?: string | null | undefined;
-      vTojken?: string | null | undefined;
+      vToken?: string | null | undefined;
     }
   >;
 }

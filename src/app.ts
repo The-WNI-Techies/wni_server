@@ -9,9 +9,10 @@ import AuthMiddleware from "./auth/auth.middlewares";
 
 const app = express();
 const PATH = '/api/v1';
+const PORT = process.env.PORT || 4000;
 const corsOptions: CorsOptions = {
 	origin: '*',
-	exposedHeaders: ['Authorization'],
+	exposedHeaders: ['Authorization', 'Set-Cookie']
 }
 
 app.use(cors(corsOptions));
@@ -27,8 +28,8 @@ app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some s
 
 DB.connect()
 	.then(() => {
-		app.listen(process.env.PORT, () => {
-			console.log(`Listening on port ${process.env.PORT}`);
+		app.listen(PORT, () => {
+			console.log(`Listening on port ${PORT}`);
 		});
 	})
 	.catch(err => console.error(err));

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import AuthController from './auth.controller';
-import AuthMiddleware from './auth.middlewares';
+
 const auth = Router();
 
 auth.post('/register', AuthController.signUp);
