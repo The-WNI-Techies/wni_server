@@ -14,14 +14,13 @@ class ChatController {
 
         try {
             const roomData: Partial<IChatRoom> = { name, creator: id, join_id: shortUUID.uuid() };
-            if(description) roomData.description = description;
-            
+            if (description) roomData.description = description;
+
             const { error } = roomValidationSchema.validate(roomData);
-            if(error) {
+            if (error) {
                 return res.status(422).json({ error: error.details[0].message });
             }
-            const room = await ChatRoom.create(roomData);
-            await room.save();
+            await ChatRoom.create(roomData);
             return res.status(201).json({ success: 'Room created successfully' });
         } catch (error) {
             console.error(error);
@@ -36,16 +35,16 @@ class ChatController {
             const limitInt = parseInt(limit as string) || 20;
             const pages = await ChatRoom.countDocuments();
 
-            if(currentPage > pages) {
+            if (currentPage > pages) {
                 return res.status(404).json({ error: 'Page does not exist' });
             }
 
             const rooms = await ChatRoom.find().skip(currentPage - 1).limit(limitInt);
-            if(!rooms) {
-                return res.status(404).json({ error: 'No rooms found!'});
+            if (!rooms) {
+                return res.status(404).json({ error: 'No rooms found!' });
             }
-            
-            return res.status(200).json({ success: 'Rooms found!', pages_left: pages - currentPage })
+
+            return res.status(200).json({ success: 'Rooms found!', pages_left: pages - currentPage, rooms })
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal server error!' });
@@ -55,13 +54,13 @@ class ChatController {
     static async searchRooms(req: IAppRequest, res: Response) {
         const { name } = req.query;
         try {
-            if(!name || !name.toString().trim()) {
+            if (!name || !name.toString().trim()) {
                 return res.status(422).json({ error: 'No search argument provided!' })
             }
 
             const roomQuery = new RegExp(`${name?.toString().trim()}`, 'i');
             const matched = await ChatRoom.find({ name: roomQuery });
-            if(!matched) {
+            if (!matched) {
                 return res.status(404).json({ error: 'No room found!' });
             }
             return res.status(200).json({ success: 'Match(es) found!', matches: matched })
@@ -77,52 +76,72 @@ class ChatController {
 
         try {
             let roomData: Partial<IChatRoom> = {};
-            if(name) roomData.name = name;
-            if(description) roomData.description = description;
-            if(mode) roomData.mode = mode;
-            if(join_id) roomData.join_id = join_id;
+            if (name) roomData.name = name;
+            if (description) roomData.description = description;
+            if (mode) roomData.mode = mode;
+            if (join_id) roomData.join_id = join_id;
 
             const { error } = roomValidationSchema.validate(roomData);
-            if(error) {
+            if (error) {
                 return res.status(400).json({ error: error.details[0].message });
             }
 
             await ChatRoom.findByIdAndUpdate(roomID, roomData, { new: true });
-            return res.status
+            return res.status(200).json({ success: "Room update succcessful!", room: roomData })
         } catch (error) {
             return res.status(500).json({ error: 'Error updating room' });
         }
 
     }
-    
+
     static async joinRoom(req: IAppRequest, res: Response) {
         const { joinID } = req.params;
-        const user = req.user?._id;
+        const user = req.user?._id as any as Types.ObjectId;
 
-        const room = await ChatRoom.findOne({ join_id: joinID });
-        if(!room) return res.status(404).json({ error: 'Room not found!' });
+        try {
+            const room = await ChatRoom.findOne({ join_id: joinID });
+            if (!room) return res.status(404).json({ error: 'Room not found!' });
 
-        console.log(room.participants);
-        // ! TODO => Add user to room if not participant or host
+            console.log(room.participants);
+            console.log(`\n\n\n${user}`);
+
+            const isHost = room.creator === user;
+            const isRoomParticipant = room.participants.find(participant => participant.user?.toString() === user.toString());
+
+            if (isHost || isRoomParticipant) {
+                return res.status(400).json({ error: "Already a room participant!" })
+            }
+            const newParticipant = {
+                user,
+                role: 'regular'
+            }
+            room.participants.push(newParticipant);
+            await room.save();
+            return res.status(200).json({ success: "Joined room successfully!" })
+        } catch (error) {
+
+        }
     }
 
     static async deleteRoom(req: IAppRequest, res: Response) {
         const { roomID } = req.params;
-        const user = req.user?._id;
-
+        const user = req.user?._id as any as Types.ObjectId;
         try {
             if(!isValidObjectId(roomID)) return res.status(422).json({ error: 'No such room!' });
 
             const room = await ChatRoom.exists({ _id: roomID });
             if(!room) return res.status(404).json({ error: 'Room not found' });
 
-            await ChatRoom.findByIdAndDelete(roomID, {host: {$eq: user}}); 
+            const deletedRoom = await ChatRoom.findByIdAndDelete(roomID, {host: {$eq: user}});
+            if(!deletedRoom) {
+                return res.status(400).json({ error: "Error deleting chat room!" })
+            }
+            return res.status(200).json({ success: "Room deleted successfully!" });
 
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Could not delete room!' })
+            return res.status(500).json({ error: "Error deleting that room" });
         }
-        
     }
 
     static async leaveRoom(req: IAppRequest, res: Response) {
@@ -139,21 +158,21 @@ class ChatController {
         const userID = req.user?._id;
 
         try {
-            if(!content) {
-                return res.status(422).json({ error: 'No message body'});
+            if (!content) {
+                return res.status(422).json({ error: 'No message body' });
             }
 
             const mssg = await Message.create({ author: userID, content });
-            if(!mssg) {
-                return res.status(400).json({ error: 'Error creating rooms'})
+            if (!mssg) {
+                return res.status(400).json({ error: 'Error creating rooms' })
             }
 
             const room = await ChatRoom.findById(roomID);
-            if(!room) {
+            if (!room) {
                 return res.status(404).json({ error: 'Room not found!' });
             }
-            await ChatRoom.findByIdAndUpdate(roomID, 
-                { mesages: [ ...room.messages, mssg._id ] }, 
+            await ChatRoom.findByIdAndUpdate(roomID,
+                { mesages: [...room.messages, mssg._id] },
                 { new: true }
             );
             await mssg.save();
