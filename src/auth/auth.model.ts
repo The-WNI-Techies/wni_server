@@ -1,14 +1,12 @@
 import { model, Schema } from "mongoose";
 
-function AnHourFromCurrentTime() {
+function anHourFromNow() {
 	const now = new Date();
-	now.setHours(now.getHours() + 1)
-	const then = now;
-	return then;
+	return now.setHours(now.getHours() + 1)
 }
 
 const ResetPasswordTokenSchema = new Schema({
-	user : {
+	user: {
 		type: Schema.Types.ObjectId,
 		ref: 'User',
 		unique: true,
@@ -20,7 +18,7 @@ const ResetPasswordTokenSchema = new Schema({
 	},
 	expires: {
 		type: Schema.Types.Date,
-		default: AnHourFromCurrentTime(),
+		default: anHourFromNow(),
 	}
 });
 

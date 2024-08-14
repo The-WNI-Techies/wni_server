@@ -9,10 +9,9 @@ const messageSchema = new Schema({
         type: String,
         required: true
     }
-});
+}, { timestamps: true});
 
 export const Message = model('message', messageSchema);
-
 
 const chatRoomSchema = new Schema({
     creator: {
@@ -52,7 +51,7 @@ const chatRoomSchema = new Schema({
         type: String,
         required: true
     }
-});
+},  { timestamps: true });
 
 
 const ChatRoom = model('chatRoom', chatRoomSchema);

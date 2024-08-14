@@ -11,8 +11,9 @@ const app = express();
 const PATH = '/api/v1';
 const PORT = process.env.PORT || 4000;
 const corsOptions: CorsOptions = {
-	origin: '*',
-	exposedHeaders: ['Authorization', 'Set-Cookie']
+	origin: process.env.CORS_ORIGIN,
+	credentials: true,
+	exposedHeaders: ['Authorization']
 }
 
 app.use(cors(corsOptions));
@@ -24,7 +25,12 @@ app.use(`${PATH}/auth`, auth);
 app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
 app.use(`${PATH}/chat`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, chat);
 
+
 app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some server-side shit!"));
+
+app.use("*", (_req: Request, res: Response) => {
+	res.status(404).json({ error: "Endpoint not found!" });
+});
 
 DB.connect()
 	.then(() => {

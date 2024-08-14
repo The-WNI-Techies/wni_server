@@ -9,9 +9,7 @@ const userValidationSchema = Joi.object({
     gender: Joi.string(),
     firstName: Joi.string(),
     lastName:  Joi.string(),
-    verified: Joi.boolean(),
-    
-
+    verified: Joi.boolean()
 })
 
 export default userValidationSchema;

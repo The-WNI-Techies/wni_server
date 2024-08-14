@@ -9,4 +9,5 @@ interface IUser {
     profile_image_uri: string;
 }
 
+type Bio = Pick<IUser, 'firstName'| 'lastName' | 'age' | 'gender'>
 export default IUser;

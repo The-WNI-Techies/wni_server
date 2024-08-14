@@ -127,13 +127,13 @@ class ChatController {
         const { roomID } = req.params;
         const user = req.user?._id as any as Types.ObjectId;
         try {
-            if(!isValidObjectId(roomID)) return res.status(422).json({ error: 'No such room!' });
+            if (!isValidObjectId(roomID)) return res.status(422).json({ error: 'No such room!' });
 
             const room = await ChatRoom.exists({ _id: roomID });
-            if(!room) return res.status(404).json({ error: 'Room not found' });
+            if (!room) return res.status(404).json({ error: 'Room not found' });
 
-            const deletedRoom = await ChatRoom.findByIdAndDelete(roomID, {host: {$eq: user}});
-            if(!deletedRoom) {
+            const deletedRoom = await ChatRoom.findByIdAndDelete(roomID, { host: { $eq: user } });
+            if (!deletedRoom) {
                 return res.status(400).json({ error: "Error deleting chat room!" })
             }
             return res.status(200).json({ success: "Room deleted successfully!" });
@@ -145,11 +145,26 @@ class ChatController {
     }
 
     static async leaveRoom(req: IAppRequest, res: Response) {
-        //!TODO => Impplement leave room logic.
+        try {
+            const { roomID } = req.params;
+            const user = req.user?._id;
+            const room = await ChatRoom.findById(roomID);
+            if(!room) {
+                return res.status(404).json({ error: "Room not found!" });
+            }
+            const filteredParticipants = room.participants.filter(participant => participant.user !== user);
+            room.participants = filteredParticipants as any as typeof room.participants;
+            await room.save()
+         
+        //!TODO => Implement leave room logic.
         /* 
         Room moderators can remove anyone from a room 
         and participants can only remove themselves
         */
+        } catch (error) {
+            
+        }
+        
     }
 
     static async sendMessage(req: IAppRequest, res: Response) {

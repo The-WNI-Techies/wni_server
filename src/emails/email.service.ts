@@ -41,7 +41,7 @@ class EmailService {
 
     static async sendPasswordResetToken(to: string, username: string, resetPasswordToken: string) {
         const mailOptions: Mail.Options = {
-            from: process.env.EMAIL_ADDRESS as string,
+            from: process.env.EMAIL_ADDRESS,
             to,
             subject: 'Reset Password',
             html: this.parseMailFile(readFileSync(`${__dirname}/templates/password_reset.html`).toString(), username, resetPasswordToken)

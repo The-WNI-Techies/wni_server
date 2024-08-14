@@ -8,5 +8,6 @@ declare namespace NodeJS {
         EMAIL_SERVICE: string;
         EMAIL_ADDRESS: string;
         EMAIL_PASS: string;
+        CORS_ORIGIN: string;
     }
 }

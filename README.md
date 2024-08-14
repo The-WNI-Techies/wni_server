@@ -5,13 +5,9 @@ Backend system for WNI's web platform
 - Make sure you have a Javascript runtime and a Typescript compiler. (Bun, Node.js, Deno && tsc)
 - Make sure you have npm installed or you are using the Bun runtime
 - Make sure you have properly set up your mongo db server and obtained a connection string
-- Create a .env file in the root of the project dir and add the following:
+- Create a .env file in the root of the project dir by running the commnad below in the project root dir:
 ```sh
-PORT=8000
-NODE_ENV=DEVELOPMENT
-ACCESS_SECRET=<your-access-secret>ENVIRONMENT
-REFRESH_SECRET=<your-refresh-secret>
-MONGO_URI=<your_mongo_db_connection_string>
+sh scripts/create_env.sh 
 ```
 - Install dependencies:
 > Using Bun
