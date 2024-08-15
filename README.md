@@ -36,7 +36,7 @@ Or better still **setup** your own configuration for hot-reloading
 - Cascade user rooms and messages or set to null if user is deleted
 
 ## BUGS
-[None](https://adeyemiabiade.vercel.app)
+[None](https://www.adeyemiabiade.tech)
 
 ## DATABASE && DB Schema
 
