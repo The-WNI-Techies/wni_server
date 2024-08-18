@@ -55,7 +55,7 @@ class AuthController {
 				return res.status(400).json({ error: `${usernameTaken ? 'Username' : 'Email'} taken!` });
 			}
 
-			const user = await User.create({ username, email, password });
+			const user = new User({ username, email, password });
 			user.password = await hash(password, 10);
 			user.short_id = shortUUID.generate();
 			user.save();
