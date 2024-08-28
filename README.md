@@ -34,6 +34,7 @@ Or better still **setup** your own configuration for hot-reloading
 - Handle image upload efficiently
 - Create a distinct web-socket server for managing chat
 - Cascade user rooms and messages or set to null if user is deleted
+- Handle blog
 
 ## BUGS
 [None](https://www.adeyemiabiade.tech)

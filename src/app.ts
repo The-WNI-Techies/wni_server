@@ -7,9 +7,10 @@ import user from "./user/user.routes";
 import chat from "./chat/chat.routes";
 import AuthMiddleware from "./auth/auth.middlewares";
 import SwaggerUI from 'swagger-ui-express';
-import YAML from 'yaml'
+import YAML from 'js-yaml'
 import { readFileSync } from "fs";
 import path from "path";
+import badge from "./badge/badge.routes";
 
 const app = express();
 const PATH = '/api/v1';
@@ -20,16 +21,17 @@ const corsOptions: CorsOptions = {
 	exposedHeaders: ['Authorization']
 }
 const yamlFile = readFileSync(path.resolve(__dirname, '../docs/openapi.yaml'), 'utf-8')
-const swaggerDocument = YAML.parse(yamlFile)
+const swaggerDocument = YAML.load(yamlFile);
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/docs', SwaggerUI.serve, SwaggerUI.setup(swaggerDocument))
+// app.use('/docs', SwaggerUI.serve, SwaggerUI.setup(swaggerDocument))
 app.use(`${PATH}/auth`, auth);
 app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
+app.use(`${PATH}/badge`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, badge);
 app.use(`${PATH}/chat`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, chat);
 
 

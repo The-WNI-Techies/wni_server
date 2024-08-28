@@ -1,0 +1,17 @@
+/auth/register:
+    post:
+        summary: Registers new user
+        description: An endpoint for registration of new user into the application
+        responses:
+            "201":
+                description: Registration successful (New user created)
+                content: application/json
+                schema:
+                    type: object
+                    properties:
+                        success:
+                            type: string
+                            description: A success message
+                        short_id:
+                            type: string
+                            description: Users short ID

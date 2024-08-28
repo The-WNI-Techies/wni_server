@@ -3,7 +3,6 @@ info:
     title: The Back-end API server for The WNI
     version: 0.0.1
 
-
 servers:
     - url: http://localhost:4000
 
@@ -11,9 +10,5 @@ paths:
     /healthz:
         get:
             summary: Checks if the server is up and active
-    /auth:
-        $ref: './auth.yaml'
-    /user:
-        $ref: './user.yaml'
     /chat:
-        $ref: './chat.yaml'
+        $ref: "./chat.yaml"
