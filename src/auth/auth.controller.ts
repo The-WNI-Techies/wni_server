@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
-import IAppRequest from "../interfaces/IAppRequest";
-import { CookieOptions, Response } from "express";
+import { CookieOptions, Request, Response } from "express";
 import User from "../user/user.model";
 import userValidationSchema from "../validation/userValidation";
 import { compare, hash } from "bcryptjs";
@@ -33,7 +32,7 @@ class AuthController {
 			.join("-");
 	}
 
-	static async signUp(req: IAppRequest, res: Response) {
+	static async signUp(req: Request, res: Response) {
 		let { username, email, password } = req.body;
 		username = username.trim(), password = password.trim();
 		if (!username || !email || !password) {
@@ -71,7 +70,7 @@ class AuthController {
 		}
 	}
 
-	static async signIn(req: IAppRequest, res: Response) {
+	static async signIn(req: Request, res: Response) {
 		const { username, email, password } = req.body;
 		if ((!username && !email) || !password)
 			return res.status(400).json({ error: "Username or Email and password are required!" });
@@ -112,7 +111,7 @@ class AuthController {
 		}
 	}
 
-	static async sendVerificationToken(req: IAppRequest, res: Response) {
+	static async sendVerificationToken(req: Request, res: Response) {
 		const { userID } = req.params;
 		const { email } = req.body;
 
@@ -153,7 +152,7 @@ class AuthController {
 		}
 	}
 
-	static async verifyUser(req: IAppRequest, res: Response) {
+	static async verifyUser(req: Request, res: Response) {
 		const { vToken } = req.body;
 		const { userID } = req.params;
 
@@ -193,7 +192,7 @@ class AuthController {
 		}
 	}
 
-	static async generatePasswordResetToken(req: IAppRequest, res: Response) {
+	static async generatePasswordResetToken(req: Request, res: Response) {
 		const { userID } = req.params;
 		const { email } = req.body;
 
@@ -247,7 +246,7 @@ class AuthController {
 
 	}
 
-	static async resetPassword(req: IAppRequest, res: Response) {
+	static async resetPassword(req: Request, res: Response) {
 		const { password, resetToken } = req.body;
 		try {
 			if (!password || !resetToken) return res.status(422).json({ error: "Malformed request!" });
@@ -288,7 +287,7 @@ class AuthController {
 		}
 	}
 
-	static async refreshAccessToken(req: IAppRequest, res: Response) {
+	static async refreshAccessToken(req: Request, res: Response) {
 		try {
 			const refreshToken = req.cookies?.['refresh'];
 			if (!refreshToken) {
@@ -297,7 +296,7 @@ class AuthController {
 			const decodedToken = jwt.verify(refreshToken, tokens.REFRESH_SECRET);
 			if (!decodedToken) return res.status(403).json({ error: 'Unauthorized' });
 
-			const userID = decodedToken as any as Types.ObjectId;
+			const userID = (decodedToken as any).id as Types.ObjectId;
 			const user = await User.findById(userID);
 
 			if (!user) {

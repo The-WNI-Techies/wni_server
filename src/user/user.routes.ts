@@ -6,7 +6,7 @@ import path from "path";
 
 const router = Router();
 
-const uploadDestination = path.resolve(__dirname, '../../uploads')
+const uploadDestination = path.resolve(__dirname, '../../uploads/profiles')
 const upload = multer({ dest:  uploadDestination });
 
 router.get('/', UserController.getAllUsers);

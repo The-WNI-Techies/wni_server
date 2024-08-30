@@ -1,5 +1,4 @@
-import IAppRequest from "../interfaces/IAppRequest";
-import { Response } from "express";
+import {Request, Response } from "express";
 import ChatRoom, { Message } from "./chat.model";
 import IChatRoom from "../interfaces/IChatRoom";
 import { isValidObjectId, Types } from "mongoose";
@@ -8,9 +7,9 @@ import shortUUID from "short-uuid";
 
 class ChatController {
 
-    static async createRoom(req: IAppRequest, res: Response) {
+    static async createRoom(req: Request, res: Response) {
         const { name, description } = req.body;
-        const id = req.user?._id as Types.ObjectId;
+        const id = req.user?.id as any as Types.ObjectId;
 
         try {
             const roomData: Partial<IChatRoom> = { name, creator: id, join_id: shortUUID.uuid() };
@@ -28,7 +27,7 @@ class ChatController {
         }
     }
 
-    static async allRooms(req: IAppRequest, res: Response) {
+    static async allRooms(req: Request, res: Response) {
         const { page, limit } = req.query;
         try {
             const currentPage = parseInt(page as string) || 1;
@@ -51,7 +50,7 @@ class ChatController {
         }
     }
 
-    static async searchRooms(req: IAppRequest, res: Response) {
+    static async searchRooms(req: Request, res: Response) {
         const { name } = req.query;
         try {
             if (!name || !name.toString().trim()) {
@@ -70,7 +69,7 @@ class ChatController {
         }
     }
 
-    static async editRoom(req: IAppRequest, res: Response) {
+    static async editRoom(req: Request, res: Response) {
         const { name, description, mode, join_id } = req.body;
         const roomID = req.params;
 
@@ -94,7 +93,7 @@ class ChatController {
 
     }
 
-    static async joinRoom(req: IAppRequest, res: Response) {
+    static async joinRoom(req: Request, res: Response) {
         const { joinID } = req.params;
         const user = req.user?._id as any as Types.ObjectId;
 
@@ -123,7 +122,7 @@ class ChatController {
         }
     }
 
-    static async deleteRoom(req: IAppRequest, res: Response) {
+    static async deleteRoom(req: Request, res: Response) {
         const { roomID } = req.params;
         const user = req.user?._id as any as Types.ObjectId;
         try {
@@ -144,7 +143,7 @@ class ChatController {
         }
     }
 
-    static async leaveRoom(req: IAppRequest, res: Response) {
+    static async leaveRoom(req: Request, res: Response) {
         try {
             const { roomID } = req.params;
             const user = req.user?._id;
@@ -167,7 +166,7 @@ class ChatController {
         
     }
 
-    static async sendMessage(req: IAppRequest, res: Response) {
+    static async sendMessage(req: Request, res: Response) {
         const { roomID } = req.params;
         const { content } = req.body;
         const userID = req.user?._id;
@@ -197,7 +196,7 @@ class ChatController {
         }
     }
 
-    static async deleteMessage(req: IAppRequest, res: Response) {
+    static async deleteMessage(req: Request, res: Response) {
         const userID = req.user?._id;
 
         // !TODO => Delete message and remove its ref from any room

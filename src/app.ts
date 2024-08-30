@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import DB from "./config/db";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
@@ -28,10 +28,10 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use('/docs', SwaggerUI.serve, SwaggerUI.setup(swaggerDocument))
+// app.use('/docs', SwaggerUI.serve, SwaggerUI.setup(swaggerDocument));
 app.use(`${PATH}/auth`, auth);
 app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
-app.use(`${PATH}/badge`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, badge);
+app.use(`${PATH}/badges`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, badge);
 app.use(`${PATH}/chat`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, chat);
 
 
@@ -40,6 +40,12 @@ app.get("/healthz", (_req: Request, res: Response) => res.send("Ready for some s
 app.use("*", (_req: Request, res: Response) => {
 	res.status(404).json({ error: "Endpoint not found!" });
 });
+
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+	console.error(error);
+	res.status(500).json({ error: "Internal server  error"});
+	next();
+}) 
 
 DB.connect()
 	.then(() => {

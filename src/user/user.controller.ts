@@ -1,11 +1,10 @@
-import { Response } from "express";
-import IAppRequest from "../interfaces/IAppRequest";
+import { Request, Response } from "express";
 import User from "./user.model";
 import IUser from "../interfaces/IUser";
 
 class UserController {
 
-    static async getUserInfo(req: IAppRequest, res: Response) {
+    static async getUserInfo(req: Request, res: Response) {
         const { userID } = req.params;
         if(!userID) return res.status(422).json({ error: 'Mallformed request' });
         
@@ -19,7 +18,7 @@ class UserController {
         }
     }
 
-    static async updateProfileInfo(req: IAppRequest, res: Response) {
+    static async updateProfileInfo(req: Request, res: Response) {
         const id = req.user?._id;
         const { firstName, lastName, gender, age } = req.body;
         const  profileAvatar = req.file;
@@ -40,7 +39,7 @@ class UserController {
         }
     }
 
-    static async deleteProfile(req: IAppRequest, res: Response) {
+    static async deleteProfile(req: Request, res: Response) {
         const id = req.user?._id;
         try {
             await User.findByIdAndDelete(id);
@@ -51,7 +50,7 @@ class UserController {
 
     }
                                                                                                                                                                                                             
-    static async getAllUsers(req: IAppRequest, res: Response) {
+    static async getAllUsers(req: Request, res: Response) {
         try {
             let page: any = req.query.page;
             page = parseInt(page as string) || 1;
@@ -68,7 +67,7 @@ class UserController {
         }
     }
 
-    static async getAdmins(_req: IAppRequest, res: Response) {
+    static async getAdmins(_req: Request, res: Response) {
         try {
             const admins = await User.find({ role: 'admin' });
             if(!admins) return res.status(400).json({ error: 'Could not get admins' });
@@ -80,7 +79,7 @@ class UserController {
 
     }
 
-    static async searchUsers(req: IAppRequest, res: Response) {
+    static async searchUsers(req: Request, res: Response) {
         const { name } = req.query;
         try {
             if(!name?.toString().trim()) {
