@@ -1,21 +1,19 @@
-import { required, string } from "joi";
 import { model, Schema } from "mongoose";
 
-// type BadgeDocument = typeof badgeSchema & Document;
 const badgeSchema = new Schema({
     name: {
-        type: string,
+        type: String,
         required: true,
         unique: true
     },
     description: {
-        type: string
+        type: String
     },
-    icon:{
-        type: string,
+    icon: {
+        type: String,
         required: true
     }
-})
+}, { timestamps: true })
 
 const Badge = model('badges', badgeSchema);
 
