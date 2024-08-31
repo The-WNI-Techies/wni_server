@@ -1,3 +1,4 @@
+import { required } from "joi";
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema({
@@ -35,10 +36,14 @@ const userSchema = new Schema({
         required: true,
         unique: true,
     },
+    badges: [{
+        type: Schema.Types.ObjectId,
+        ref: "Badge"
+    }],
     gender: {
         type: String,
         enum: ['F', 'M']
-    },  
+    },
     vToken: {
         type: String
     },
@@ -48,6 +53,7 @@ const userSchema = new Schema({
     },
     short_id: {
         type: String,
+        required: true
     }
 }, { timestamps: true });
 

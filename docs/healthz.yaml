@@ -1,0 +1,14 @@
+/healthz:
+    get:
+        summary: Server status
+        description: Checks if the server is healthy and active
+        responses:
+            "200":
+                description: Returns json object with an active key
+                content: application/json
+                schema:
+                    type: object
+                    properties:
+                        active:
+                            type: string
+                            description: Ready for some server-side shit!

@@ -1,13 +1,12 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import IAppRequest from "../interfaces/IAppRequest";
 import { Types } from "mongoose";
 import User from "../user/user.model";
 import { tokens } from "../config/constants";
 
 class AuthMiddleware {
 
-    static async requireAuth(req: IAppRequest, res: Response, next: NextFunction) {
+    static async requireAuth(req: Request, res: Response, next: NextFunction) {
         try {
             const authToken = req.headers.authorization?.split(' ')[1];
             if(!authToken) return res.status(401).json({ error: 'Unauthorized! '});
@@ -26,7 +25,7 @@ class AuthMiddleware {
         next();
     }
 
-    static async requireVerification(req: IAppRequest, res: Response, next: NextFunction ) { 
+    static async requireVerification(req: Request, res: Response, next: NextFunction ) { 
         const id = req.user?._id;
         if(!id) return res.status(422).json({ error: 'Malformed request! userID required' });
         try {

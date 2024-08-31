@@ -1,5 +1,5 @@
 import * as express from "express";
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 
 declare global {
@@ -20,6 +20,7 @@ declare global {
               firstName?: string | null | undefined;
               lastName?: string | null | undefined;
               age?: number | null | undefined;
+              badges?: Types.ObjectId[] | null | undefined;
               gender?: "F" | "M" | null | undefined;
               short_id?: string | null | undefined;
               vToken?: string | null | undefined;
