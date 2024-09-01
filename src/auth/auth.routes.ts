@@ -10,6 +10,7 @@ auth.post('/:userID/verify', AuthController.verifyUser);
 auth.post('/:userID/forgot-password', AuthController.generatePasswordResetToken);
 auth.put('/reset-password',  AuthController.resetPassword);
 auth.post('/refresh-access', AuthController.refreshAccessToken);
+auth.post('/logout', AuthController.logout);
 
 
 export default auth;

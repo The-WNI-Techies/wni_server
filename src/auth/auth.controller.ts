@@ -315,6 +315,18 @@ class AuthController {
 			return res.status(500).json({ error: 'Internal server errror!' });
 		}
 	}
+
+	static async logout(_req: Request, res: Response) {
+		try {
+			res.clearCookie("refresh");
+			return res.status(200).json({ success: "User logged out successfully!"});
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({ error: 'Internal server errror!' });
+
+		}
+		
+	}
 }
 
 export default AuthController;
