@@ -26,9 +26,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/docs', SwaggerUI.serve, SwaggerUI.setup(swaggerSpec));
 app.use(`${PATH}/auth`, auth);
-app.use(`${PATH}/user`, AuthMiddleware.requireAuth, user);
+app.use(`${PATH}/users`, AuthMiddleware.requireAuth, user);
 app.use(`${PATH}/badges`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, badge);
-app.use(`${PATH}/chat`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, chat);
+app.use(`${PATH}/chats`, AuthMiddleware.requireAuth, AuthMiddleware.requireVerification, chat);
 
 
 app.get("/healthz", (_req: Request, res: Response) => res.json({ active: "Ready for some server-side shit!" }));
